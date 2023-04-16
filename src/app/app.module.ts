@@ -10,6 +10,8 @@ import { CoreModule } from "./core.module";
 import { LoggingService } from "./logging.service";
 import { StoreModule } from "@ngrx/store";
 import { appReducer } from "./store/app.reducer";
+import { EffectsModule } from "@ngrx/effects";
+import { AuthEffects } from "./auth/store/auth.effects";
 
 @NgModule({
   declarations: [AppComponent, HeaderComponent],
@@ -17,6 +19,7 @@ import { appReducer } from "./store/app.reducer";
     BrowserModule,
     HttpClientModule,
     AppRoutingModule,
+    EffectsModule.forRoot([AuthEffects]),
     StoreModule.forRoot(appReducer),
     SharedModule,
     CoreModule,
