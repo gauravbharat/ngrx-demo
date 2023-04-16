@@ -16,15 +16,17 @@ const initialState: AuthState = {
 export function authReducer(
   state = initialState,
   action:
-    | AuthActions.Login
+    | AuthActions.AuthSuccess
     | AuthActions.Logout
     | AuthActions.LoginStart
-    | AuthActions.LoginFailed
+    | AuthActions.AuthFailed
+    | AuthActions.SignupStart
+    | AuthActions.ClearError
 ): AuthState {
   console.log("authReducer", state, action);
 
   switch (action.type) {
-    case AuthActions.AuthActionTypes.LOGIN:
+    case AuthActions.AuthActionTypes.AUTH_SUCCESS:
       const user = new User(
         action.payload.email,
         action.payload.userId,
@@ -47,7 +49,8 @@ export function authReducer(
         loading: false,
       };
 
-    case AuthActions.AuthActionTypes.LOGIN_START: {
+    case AuthActions.AuthActionTypes.LOGIN_START:
+    case AuthActions.AuthActionTypes.SIGNUP_START: {
       return {
         ...state,
         authError: null,
@@ -55,12 +58,19 @@ export function authReducer(
       };
     }
 
-    case AuthActions.AuthActionTypes.LOGIN_FAILED: {
+    case AuthActions.AuthActionTypes.AUTH_FAILED: {
       return {
         ...state,
         user: null,
         authError: action.payload,
         loading: false,
+      };
+    }
+
+    case AuthActions.AuthActionTypes.CLEAR_ERROR: {
+      return {
+        ...state,
+        authError: null,
       };
     }
 
