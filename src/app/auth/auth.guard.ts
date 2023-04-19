@@ -11,6 +11,7 @@ import { map, take } from "rxjs/operators";
 
 import { Store } from "@ngrx/store";
 import * as fromApp from "../store/app.reducer";
+import * as AuthSelector from "../auth/store/auth.selector";
 
 @Injectable({ providedIn: "root" })
 export class AuthGuard implements CanActivate {
@@ -24,11 +25,11 @@ export class AuthGuard implements CanActivate {
     | UrlTree
     | Promise<boolean | UrlTree>
     | Observable<boolean | UrlTree> {
-    return this.store.select("auth").pipe(
+    return this.store.select(AuthSelector.isAuthenticated).pipe(
       take(1),
-      map((authState) => authState.user),
-      map((user) => {
-        const isAuth = !!user;
+      map((isAuth) => {
+        console.log("AuthGuard", isAuth);
+
         if (isAuth) {
           return true;
         }

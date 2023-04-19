@@ -15,6 +15,7 @@ import { PlaceholderDirective } from "../shared/placeholder/placeholder.directiv
 import * as fromApp from "../store/app.reducer";
 import { Store } from "@ngrx/store";
 import * as AuthActions from "./store/auth.actions";
+import { StateKeys } from "../store/app.types";
 
 @Component({
   selector: "app-auth",
@@ -36,7 +37,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.storeSub = this.store.select("auth").subscribe((authState) => {
+    this.storeSub = this.store.select(StateKeys.AUTH).subscribe((authState) => {
       this.error = authState.authError;
       this.isLoading = authState.loading;
       if (this.error) {
@@ -62,16 +63,16 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     if (this.isLoginMode) {
       // dispatch does not return an observable, so listen/subscribe to the store state using select('auth') in onInit!!
-      this.store.dispatch(new AuthActions.LoginStart({ email, password }));
+      this.store.dispatch(AuthActions.loginStart({ email, password }));
     } else {
-      this.store.dispatch(new AuthActions.SignupStart({ email, password }));
+      this.store.dispatch(AuthActions.signupStart({ email, password }));
     }
 
     form.reset();
   }
 
   onHandleError() {
-    this.store.dispatch(new AuthActions.ClearError());
+    this.store.dispatch(AuthActions.clearError());
   }
 
   ngOnDestroy() {

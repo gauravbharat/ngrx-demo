@@ -35,7 +35,7 @@ const handleAuthentication = (resData) => {
   localStorage.setItem("userData", JSON.stringify(user));
 
   // map rxjs operator automatically wrap what you return into an observable!!
-  return new AuthActions.AuthSuccess({
+  return AuthActions.authSuccess({
     email: resData.email,
     userId: resData.localId,
     token: resData.idToken,
@@ -48,13 +48,27 @@ const handleFailure = (e: HttpErrorResponse) => {
 
   switch (e.error.error.message) {
     case "EMAIL_EXISTS":
-      errorMessage = "This email exists already";
+      errorMessage = "The email address is already in use by another account.";
+      break;
+    case "OPERATION_NOT_ALLOWED":
+      errorMessage = "Password sign-in is disabled for this project.";
+      break;
+    case "TOO_MANY_ATTEMPTS_TRY_LATER":
+      errorMessage =
+        "We have blocked all requests from this device due to " +
+        "unusual activity. Try again later.";
       break;
     case "EMAIL_NOT_FOUND":
-      errorMessage = "This email does not exist.";
+      errorMessage =
+        "There is no user record corresponding to this identifier." +
+        " The user may have been deleted.";
       break;
     case "INVALID_PASSWORD":
-      errorMessage = "This password is not correct.";
+      errorMessage =
+        "The password is invalid or the user does not have a password.";
+      break;
+    case "USER_DISABLED":
+      errorMessage = "The user account has been disabled by an administrator.";
       break;
   }
 
@@ -64,7 +78,7 @@ const handleFailure = (e: HttpErrorResponse) => {
 
   localStorage.removeItem("userData");
 
-  return of(new AuthActions.AuthFailed(errorMessage));
+  return of(AuthActions.authFailed({ errorMessage }));
 };
 
 /** organise effects in JS classes into file as xyz.effects.ts
@@ -92,15 +106,15 @@ export class AuthEffects {
 
   authSignup$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.AuthActionTypes.SIGNUP_START),
-      exhaustMap((authData: AuthActions.SignupStart) => {
+      ofType(AuthActions.signupStart),
+      exhaustMap((action) => {
         return this.http
           .post<AuthResponseData>(
             `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${environment.firebaseAPIKey}
     `,
             {
-              email: authData.payload.email,
-              password: authData.payload.password,
+              email: action.email,
+              password: action.password,
               returnSecureToken: true,
             }
           )
@@ -117,16 +131,16 @@ export class AuthEffects {
 
   authLogin$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.AuthActionTypes.LOGIN_START),
-      exhaustMap((authData: AuthActions.LoginStart) => {
+      ofType(AuthActions.loginStart),
+      exhaustMap((action) => {
         return (
           this.http
             .post<AuthResponseData>(
               `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${environment.firebaseAPIKey}
     `,
               {
-                email: authData.payload.email,
-                password: authData.payload.password,
+                email: action.email,
+                password: action.password,
                 returnSecureToken: true,
               }
             )
@@ -148,7 +162,7 @@ export class AuthEffects {
   authRedirect$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.AuthActionTypes.AUTH_SUCCESS),
+        ofType(AuthActions.authSuccess),
         tap(() => {
           console.log(
             "AuthEffects : authSuccess$ effect - navigate to main page"
@@ -161,7 +175,7 @@ export class AuthEffects {
 
   autoLogin$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.AuthActionTypes.AUTO_LOGIN),
+      ofType(AuthActions.autoLogin),
       map(() => {
         const userData: {
           email: string;
@@ -170,7 +184,7 @@ export class AuthEffects {
           _tokenExpirationDate: string;
         } = JSON.parse(localStorage.getItem("userData"));
         if (!userData) {
-          return new AuthActions.ClearError();
+          return AuthActions.clearError();
         }
 
         const loadedUser = new User(
@@ -186,7 +200,7 @@ export class AuthEffects {
               new Date().getTime()
           );
 
-          return new AuthActions.AuthSuccess({
+          return AuthActions.authSuccess({
             email: loadedUser.email,
             userId: loadedUser.id,
             token: loadedUser.token,
@@ -194,7 +208,7 @@ export class AuthEffects {
           });
         }
 
-        return new AuthActions.ClearError();
+        return AuthActions.clearError();
       })
     )
   );
@@ -202,7 +216,7 @@ export class AuthEffects {
   authLogout$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.AuthActionTypes.LOGOUT),
+        ofType(AuthActions.logout),
         tap(() => {
           this._authService.clearLogoutTimer();
           localStorage.removeItem("userData");

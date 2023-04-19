@@ -1,31 +1,24 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Subscription } from "rxjs";
+import { Component, OnInit } from "@angular/core";
+import { Observable } from "rxjs";
 
 import { Store } from "@ngrx/store";
 import * as fromApp from "../store/app.reducer";
 import * as AuthActions from "../auth/store/auth.actions";
-import { map } from "rxjs/operators";
+
 import * as RecipeActions from "../recipes/store/recipe.actions";
+import * as AuthSelector from "../auth/store/auth.selector";
 
 @Component({
   selector: "app-header",
   templateUrl: "./header.component.html",
 })
-export class HeaderComponent implements OnInit, OnDestroy {
-  isAuthenticated = false;
-  private userSub: Subscription;
+export class HeaderComponent implements OnInit {
+  isAuthenticated$: Observable<boolean>;
 
   constructor(private store: Store<fromApp.AppState>) {}
 
   ngOnInit() {
-    this.userSub = this.store
-      .select("auth")
-      .pipe(map((authState) => authState.user))
-      .subscribe((user) => {
-        this.isAuthenticated = !!user;
-        console.log(!user);
-        console.log(!!user);
-      });
+    this.isAuthenticated$ = this.store.select(AuthSelector.isAuthenticated);
   }
 
   onSaveData() {
@@ -37,10 +30,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   onLogout() {
-    this.store.dispatch(new AuthActions.Logout());
-  }
-
-  ngOnDestroy() {
-    this.userSub.unsubscribe();
+    this.store.dispatch(AuthActions.logout());
   }
 }

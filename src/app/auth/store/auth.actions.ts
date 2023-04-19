@@ -1,57 +1,27 @@
-import { Action } from "@ngrx/store";
+import { Action, createAction, props } from "@ngrx/store";
 
-export enum AuthActionTypes {
-  AUTH_SUCCESS = "[auth] authentication success",
-  LOGOUT = "[auth] logout",
-  LOGIN_START = "[auth] login start",
-  AUTH_FAILED = "[auth] authentication failed",
-  SIGNUP_START = "[auth] signup start",
-  CLEAR_ERROR = "[auth] clear authentication error",
-  AUTO_LOGIN = "[auth] auto login",
-  AUTO_LOGOUT = "[auth] auto logout",
-}
-
-export class AuthSuccess implements Action {
-  readonly type = AuthActionTypes.AUTH_SUCCESS;
-  constructor(
-    public payload: {
-      email: string;
-      userId: string;
-      token: string;
-      expirationDate: Date;
-    }
-  ) {}
-}
-
-export class Logout implements Action {
-  readonly type = AuthActionTypes.LOGOUT;
-}
-
-export class LoginStart implements Action {
-  readonly type = AuthActionTypes.LOGIN_START;
-
-  constructor(public payload: { email: string; password: string }) {}
-}
-
-export class SignupStart implements Action {
-  readonly type = AuthActionTypes.SIGNUP_START;
-
-  constructor(public payload: { email: string; password: string }) {}
-}
-
-export class AuthFailed implements Action {
-  readonly type = AuthActionTypes.AUTH_FAILED;
-  constructor(public payload: string) {}
-}
-
-export class ClearError implements Action {
-  readonly type = AuthActionTypes.CLEAR_ERROR;
-}
-
-export class AutoLogin implements Action {
-  readonly type = AuthActionTypes.AUTO_LOGIN;
-}
-
-export class AutoLogout implements Action {
-  readonly type = AuthActionTypes.AUTO_LOGOUT;
-}
+export const loginStart = createAction(
+  "[auth] login start",
+  props<{ email: string; password: string }>()
+);
+export const signupStart = createAction(
+  "[auth] signup start",
+  props<{ email: string; password: string }>()
+);
+export const authSuccess = createAction(
+  "[auth] authentication success",
+  props<{
+    email: string;
+    userId: string;
+    token: string;
+    expirationDate: Date;
+  }>()
+);
+export const authFailed = createAction(
+  "[auth] authentication failed",
+  props<{ errorMessage: string }>()
+);
+export const clearError = createAction("[auth] clear authentication error");
+export const logout = createAction("[auth] logout");
+export const autoLogin = createAction("[auth] auto login");
+export const autoLogout = createAction("[auth] auto logout");
