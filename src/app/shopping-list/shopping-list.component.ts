@@ -6,7 +6,8 @@ import { Ingredient } from "../shared/ingredient.model";
 import { LoggingService } from "../logging.service";
 import { Store } from "@ngrx/store";
 import * as fromApp from "../store/app.reducer";
-import { StartEdit } from "./store/shopping-list.actions";
+import * as ShoppingListActions from "./store/shopping-list.actions";
+import * as ShoppingListSelectors from "./store/shopping-list.selector";
 
 @Component({
   selector: "app-shopping-list",
@@ -14,7 +15,7 @@ import { StartEdit } from "./store/shopping-list.actions";
   styleUrls: ["./shopping-list.component.css"],
 })
 export class ShoppingListComponent implements OnInit {
-  ingredients$: Observable<{ ingredients: Ingredient[] }>;
+  ingredients$: Observable<Ingredient[]>;
 
   constructor(
     private loggingService: LoggingService,
@@ -22,12 +23,12 @@ export class ShoppingListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.ingredients$ = this.store.select("shoppingList");
+    this.ingredients$ = this.store.select(ShoppingListSelectors.ingredients);
 
     this.loggingService.printLog("Hello from ShoppingListComponent ngOnInit!");
   }
 
   onEditItem(index: number) {
-    this.store.dispatch(new StartEdit({ index }));
+    this.store.dispatch(ShoppingListActions.startEdit({ index }));
   }
 }

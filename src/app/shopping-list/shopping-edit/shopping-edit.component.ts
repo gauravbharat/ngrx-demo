@@ -6,6 +6,7 @@ import { Ingredient } from "../../shared/ingredient.model";
 import { Store } from "@ngrx/store";
 import * as ShoppingListActions from "../store/shopping-list.actions";
 import * as fromApp from "../../store/app.reducer";
+import { StateKeys } from "src/app/store/app.types";
 
 @Component({
   selector: "app-shopping-edit",
@@ -23,7 +24,7 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscription = this.store
-      .select("shoppingList")
+      .select(StateKeys.SHOPPING_LIST)
       .subscribe((shoppingListData) => {
         if (shoppingListData.editedIngredientIndex > -1) {
           this.editMode = true;
@@ -44,13 +45,15 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
     const newIngredient = new Ingredient(value.name, value.amount);
     if (this.editMode) {
       this.store.dispatch(
-        new ShoppingListActions.UpdateIngredient({
+        ShoppingListActions.updateIngredient({
           index: this.editedItemIndex,
           ingredient: newIngredient,
         })
       );
     } else {
-      this.store.dispatch(new ShoppingListActions.AddIngredient(newIngredient));
+      this.store.dispatch(
+        ShoppingListActions.addIngredient({ ingredient: newIngredient })
+      );
     }
     this.editMode = false;
     form.reset();
@@ -59,18 +62,18 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
   onClear() {
     this.slForm.reset();
     this.editMode = false;
-    this.store.dispatch(new ShoppingListActions.StopEdit());
+    this.store.dispatch(ShoppingListActions.stopEdit());
   }
 
   onDelete() {
     this.store.dispatch(
-      new ShoppingListActions.DeleteIngredient({ index: this.editedItemIndex })
+      ShoppingListActions.deleteIngredient({ index: this.editedItemIndex })
     );
     this.onClear();
   }
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
-    this.store.dispatch(new ShoppingListActions.StopEdit());
+    this.store.dispatch(ShoppingListActions.stopEdit());
   }
 }
