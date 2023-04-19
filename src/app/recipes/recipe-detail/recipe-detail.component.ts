@@ -8,6 +8,7 @@ import { map, switchMap } from "rxjs/operators";
 import { Subscription } from "rxjs";
 import * as RecipeActions from "../store/recipe.actions";
 import * as ShopppingListActions from "../../shopping-list/store/shopping-list.actions";
+import * as RecipeSelectors from "../store/recipe.selector";
 
 @Component({
   selector: "app-recipe-detail",
@@ -32,11 +33,9 @@ export class RecipeDetailComponent implements OnInit, OnDestroy {
         switchMap((params: Params) => {
           this.id = +params["id"];
 
-          return this.store.select("recipes");
+          return this.store.select(RecipeSelectors.recipes);
         }),
-        map((recipesState) =>
-          recipesState.recipes.find((r, index) => index === this.id)
-        )
+        map((recipes) => recipes.find((r, index) => index === this.id))
       )
       .subscribe((recipe: Recipe) => {
         this.recipe = recipe;
@@ -57,7 +56,7 @@ export class RecipeDetailComponent implements OnInit, OnDestroy {
   }
 
   onDeleteRecipe() {
-    this.store.dispatch(new RecipeActions.DeleteRecipe({ index: this.id }));
+    this.store.dispatch(RecipeActions.deleteRecipe({ index: this.id }));
     this.router.navigate(["/recipes"]);
   }
 

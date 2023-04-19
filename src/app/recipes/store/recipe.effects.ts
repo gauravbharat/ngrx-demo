@@ -19,7 +19,7 @@ export class RecipeEffects {
 
   fetchRecipes$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(RecipeActions.RecipeActionTypes.FETCH_RECIPES_START),
+      ofType(RecipeActions.fetchRecipesStart),
       exhaustMap(() => {
         return this.http
           .get<Recipe[]>("https://ng-max-recipe.firebaseio.com/recipes.json")
@@ -32,14 +32,16 @@ export class RecipeEffects {
                 };
               });
 
-              return new RecipeActions.SetRecipes({
+              // console.log("RecipeEffects : fetchRecipes$ ", transformedRecipes);
+
+              return RecipeActions.setRecipes({
                 recipes: transformedRecipes,
               });
             }),
             catchError((error) => {
               let errorMessage = "Failed fetching recipes from server";
 
-              return of(new RecipeActions.FetchRecipesFailed(errorMessage));
+              return of(RecipeActions.fetchRecipesFailed({ errorMessage }));
             })
           );
       })
@@ -49,7 +51,7 @@ export class RecipeEffects {
   saveRecipes$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(RecipeActions.RecipeActionTypes.SAVE_RECIPES_START),
+        ofType(RecipeActions.saveRecipesStart),
         withLatestFrom(this.store.select("recipes")),
         exhaustMap(([actionData, recipesState]) => {
           const recipes = recipesState.recipes;

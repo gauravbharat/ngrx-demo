@@ -1,3 +1,4 @@
+import { Action, createReducer, on } from "@ngrx/store";
 import { Recipe } from "../recipe.model";
 import * as RecipeActions from "./recipe.actions";
 
@@ -13,72 +14,67 @@ const initialState: RecipesState = {
   apiError: null,
 };
 
+const _recipesReducer = createReducer(
+  initialState,
+  on(RecipeActions.setRecipes, (state, action) => {
+    // console.log("RecipesState : RecipeActions.setRecipes", state, action);
+
+    return {
+      ...state,
+      recipes: action.recipes,
+      loading: false,
+      apiError: null,
+    };
+  }),
+  on(
+    RecipeActions.fetchRecipesStart,
+    RecipeActions.saveRecipesStart,
+    (state) => ({
+      ...state,
+      loading: true,
+      apiError: null,
+    })
+  ),
+  on(
+    RecipeActions.fetchRecipesFailed,
+    RecipeActions.saveRecipesFailed,
+    (state, action) => ({
+      ...state,
+      loading: false,
+      apiError: action.errorMessage,
+    })
+  ),
+  on(RecipeActions.addRecipe, (state, action) => ({
+    ...state,
+    recipes: state.recipes.concat([action.recipe]),
+  })),
+  on(RecipeActions.updateRecipe, (state, { index, newRecipe }) => {
+    const updatedRecipe = {
+      ...state.recipes[index],
+      ...newRecipe,
+    };
+    const newRecipes = state.recipes.map((v) => v);
+    newRecipes[index] = updatedRecipe;
+
+    return {
+      ...state,
+      recipes: newRecipes,
+    };
+  }),
+  on(RecipeActions.deleteRecipe, (state, { index }) => {
+    const recipes = state.recipes.map((v) => v);
+    recipes.splice(index, 1);
+
+    return {
+      ...state,
+      recipes,
+    };
+  })
+);
+
 export function recipeReducer(
-  state = initialState,
-  action:
-    | RecipeActions.SetRecipes
-    | RecipeActions.FetchRecipesStart
-    | RecipeActions.FetchRecipesFailed
-    | RecipeActions.SaveRecipesStart
-    | RecipeActions.SaveRecipesFailed
-    | RecipeActions.AddRecipe
-    | RecipeActions.UpdateRecipe
-    | RecipeActions.DeleteRecipe
+  state: RecipesState,
+  action: Action
 ): RecipesState {
-  switch (action.type) {
-    case RecipeActions.RecipeActionTypes.SET_RECIPES:
-      return {
-        ...state,
-        recipes: action.payload.recipes,
-        loading: false,
-        apiError: null,
-      };
-
-    case RecipeActions.RecipeActionTypes.FETCH_RECIPES_START:
-    case RecipeActions.RecipeActionTypes.SAVE_RECIPES_START:
-      return {
-        ...state,
-        loading: true,
-        apiError: null,
-      };
-
-    case RecipeActions.RecipeActionTypes.FETCH_RECIPES_FAILED:
-    case RecipeActions.RecipeActionTypes.SAVE_RECIPES_FAILED:
-      return {
-        ...state,
-        loading: false,
-        apiError: action.payload,
-      };
-
-    case RecipeActions.RecipeActionTypes.ADD_RECIPE:
-      return {
-        ...state,
-        recipes: state.recipes.concat([action.payload]),
-      };
-
-    case RecipeActions.RecipeActionTypes.UPDATE_RECIPE:
-      const updatedRecipe = {
-        ...state.recipes[action.payload.index],
-        ...action.payload.newRecipe,
-      };
-      const newRecipes = state.recipes.map((v) => v);
-      newRecipes[action.payload.index] = updatedRecipe;
-
-      return {
-        ...state,
-        recipes: newRecipes,
-      };
-
-    case RecipeActions.RecipeActionTypes.DELETE_RECIPE:
-      const recipes = state.recipes.map((v) => v);
-      recipes.splice(action.payload.index, 1);
-
-      return {
-        ...state,
-        recipes,
-      };
-
-    default:
-      return state;
-  }
+  return _recipesReducer(state, action);
 }

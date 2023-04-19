@@ -10,6 +10,7 @@ import { switchMap } from "rxjs/operators";
 import { RecipesState } from "../store/recipe.reducer";
 import { Recipe } from "../recipe.model";
 import * as RecipeActions from "../store/recipe.actions";
+import * as RecipeSelectors from "../store/recipe.selector";
 
 @Component({
   selector: "app-recipe-edit",
@@ -40,12 +41,14 @@ export class RecipeEditComponent implements OnInit, OnDestroy {
           this.id = +params["id"];
           this.editMode = params["id"] != null;
 
-          return this.editMode ? this.store.select("recipes") : of(null);
+          return this.editMode
+            ? this.store.select(RecipeSelectors.recipes)
+            : of(null);
         })
       )
-      .subscribe((recipesState: RecipesState | null) => {
-        const recipe = recipesState.recipes
-          ? recipesState.recipes.find((r, index) => index === this.id)
+      .subscribe((recipes: Recipe[] | null) => {
+        const recipe = recipes
+          ? recipes.find((r, index) => index === this.id)
           : null;
 
         this.initForm(recipe);
@@ -64,13 +67,13 @@ export class RecipeEditComponent implements OnInit, OnDestroy {
     //   this.recipeForm.value['ingredients']);
     if (this.editMode) {
       this.store.dispatch(
-        new RecipeActions.UpdateRecipe({
+        RecipeActions.updateRecipe({
           index: this.id,
           newRecipe: this.recipeForm.value,
         })
       );
     } else {
-      this.store.dispatch(new RecipeActions.AddRecipe(this.recipeForm.value));
+      this.store.dispatch(RecipeActions.addRecipe(this.recipeForm.value));
     }
     this.onCancel();
   }
